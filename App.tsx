@@ -28,7 +28,7 @@ const mapOrder = (dbOrder: any): Order => ({
     id: b.id,
     deliveryGuyId: b.deliveryGuyId,
     deliveryGuyName: b.deliveryGuyName,
-    amount: Number(b.proposedFee),
+    amount: Number(b.proposedFee || b.amount),
     timestamp: new Date(b.timestamp).getTime()
   })),
   messages: [], // Messages table not provided, keeping empty
@@ -81,10 +81,11 @@ const App: React.FC = () => {
 
   // Define data fetching logic outside useEffect so it can be called manually
   const fetchAndSetData = useCallback(async () => {
-    const [ordersData, reviewsData, messagesData] = await Promise.all([
+    const [ordersData, reviewsData, messagesData, bidsData] = await Promise.all([
       OrdersAPI.list(),
       ReviewsAPI.list(),
       MessagesAPI.list(),
+      BidsAPI.list(),
     ]);
 
     // Build Users map for ratings (calculating stars based on fetched reviews)
@@ -110,6 +111,19 @@ const App: React.FC = () => {
     if (ordersData) {
       const mappedOrders = ordersData.map(dbOrder => {
         const baseOrder = mapOrder(dbOrder);
+        
+        // If order doesn't have bids or they are empty, try to find them in bidsData
+        if (!baseOrder.bids || baseOrder.bids.length === 0) {
+          const matchingBids = bidsData?.filter((b: any) => b.orderId === dbOrder.id) || [];
+          baseOrder.bids = matchingBids.map((b: any) => ({
+            id: b.id,
+            deliveryGuyId: b.userId || b.deliveryGuyId,
+            deliveryGuyName: b.userName || b.deliveryGuyName || 'Rider',
+            amount: Number(b.amount || b.proposedFee),
+            timestamp: new Date(b.timestamp).getTime()
+          }));
+        }
+
         // Attach real-time messages
         baseOrder.messages = messagesData?.filter((m: any) => m.orderId === dbOrder.id).map((m: any) => ({
           id: m.id, senderId: m.senderId, text: m.text, timestamp: new Date(m.timestamp).getTime()
