@@ -6,6 +6,7 @@ import DeliveryPortal from './components/DeliveryPortal';
 import Navbar from './components/Navbar';
 import ChatModal from './components/ChatModal';
 import AuthPortal from './components/AuthPortal';
+import LandingPage from './components/LandingPage';
 // import { supabase } from './supabaseClient';
 import { Orders as OrdersAPI, Bids as BidsAPI, Wallets as WalletsAPI, Messages as MessagesAPI, Reviews as ReviewsAPI } from './src/api';
 import { getSocket } from './src/realtime';
@@ -59,6 +60,7 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
   const [isLoading, setIsLoading] = useState(true);
   const [lang, setLang] = useState<'en' | 'ar'>('en');
+  const [showLanding, setShowLanding] = useState(true);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -349,6 +351,17 @@ const App: React.FC = () => {
   }
 
   if (!currentUser) {
+    if (showLanding) {
+      return (
+        <LandingPage 
+          onExplore={() => setShowLanding(false)} 
+          t={t} 
+          isDarkMode={isDarkMode} 
+          onToggleTheme={toggleTheme} 
+          onToggleLanguage={toggleLanguage} 
+        />
+      );
+    }
     return <AuthPortal onAuth={handleAuth} existingUsers={users} onSignup={handleSignup} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} />;
   }
 
