@@ -62,14 +62,14 @@ const StorePortal: React.FC<StorePortalProps> = ({ orders, users, onCreate, onSe
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.storeDashboard}</h1>
-          <p className="text-slate-500 dark:text-slate-400">{t.storeSubtitle}</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.storeDashboard}</h1>
+          <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">{t.storeSubtitle}</p>
         </div>
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 flex items-center"
+          className="w-full md:w-auto bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 flex items-center justify-center"
         >
           <svg className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -79,7 +79,7 @@ const StorePortal: React.FC<StorePortalProps> = ({ orders, users, onCreate, onSe
       </div>
 
       {showCreate && (
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="bg-white dark:bg-slate-900 p-4 md:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
           <h2 className="text-xl font-black mb-6 text-slate-800 dark:text-slate-100">{t.newOffer}</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -172,17 +172,19 @@ const StorePortal: React.FC<StorePortalProps> = ({ orders, users, onCreate, onSe
 
           return (
             <div key={order.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 transition-colors">
-                <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+              <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 transition-colors">
+                <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
+                  <div className="p-1.5 md:p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors">
+                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                   </div>
                   <div>
-                    <h3 className="font-black text-slate-900 dark:text-slate-100 leading-tight">{order.productName}</h3>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{order.id}</p>
+                    <h3 className="font-black text-sm md:text-base text-slate-900 dark:text-slate-100 leading-tight">{order.productName}</h3>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{order.id.slice(0, 8)}...</p>
                   </div>
                 </div>
-                {getStatusBadge(order.status)}
+                <div className="flex-shrink-0">
+                  {getStatusBadge(order.status)}
+                </div>
               </div>
 
               <div className="p-6 space-y-5">

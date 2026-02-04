@@ -173,23 +173,25 @@ const AuthPortal: React.FC<AuthPortalProps> = ({ onAuth, existingUsers, onSignup
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 transition-colors">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center mb-4">{t.demoAccess}</p>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => fillDemo('store')}
-              className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
-            >
-              {t.demoStore}
-            </button>
-            <button
-              onClick={() => fillDemo('rider')}
-              className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
-            >
-              {t.demoRider}
-            </button>
+        {import.meta.env.VITE_SHOW_DEMO === 'true' && (
+          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 transition-colors">
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center mb-4">{t.demoAccess}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => fillDemo('store')}
+                className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+              >
+                {t.demoStore}
+              </button>
+              <button
+                onClick={() => fillDemo('rider')}
+                className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+              >
+                {t.demoRider}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

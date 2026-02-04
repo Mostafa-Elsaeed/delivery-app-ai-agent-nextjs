@@ -46,9 +46,9 @@ const DeliveryPortal: React.FC<DeliveryPortalProps> = ({ currentUser, orders, us
   return (
     <div className="max-w-6xl mx-auto space-y-12">
       <section>
-        <div className="mb-8">
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.activeDeliveries}</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">{t.trackProgress}</p>
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.activeDeliveries}</h2>
+          <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium">{t.trackProgress}</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -60,7 +60,7 @@ const DeliveryPortal: React.FC<DeliveryPortalProps> = ({ currentUser, orders, us
 
              return (
               <div key={order.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col md:flex-row group transition-all duration-300">
-                <div className="p-8 flex-grow">
+                <div className="p-4 md:p-8 flex-grow">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <h3 className="font-black text-2xl text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{order.productName}</h3>
@@ -96,7 +96,7 @@ const DeliveryPortal: React.FC<DeliveryPortalProps> = ({ currentUser, orders, us
                   </div>
 
                   <div className="mb-8">
-                    <div className="flex justify-between text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 transition-colors">
+                    <div className="flex justify-between text-[8px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 transition-colors">
                       <span className={getStatusStep(order.status) >= 1 ? 'text-indigo-600 dark:text-indigo-400' : ''}>{t.stepEscrow}</span>
                       <span className={getStatusStep(order.status) >= 2 ? 'text-indigo-600 dark:text-indigo-400' : ''}>{t.stepPickup}</span>
                       <span className={getStatusStep(order.status) >= 3 ? 'text-indigo-600 dark:text-indigo-400' : ''}>{t.stepTransit}</span>
@@ -177,10 +177,10 @@ const DeliveryPortal: React.FC<DeliveryPortalProps> = ({ currentUser, orders, us
       </section>
 
       <section>
-        <div className="mb-8 flex justify-between items-end">
+        <div className="mb-6 md:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.jobBoard}</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">{t.findJobs}</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.jobBoard}</h2>
+            <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium">{t.findJobs}</p>
           </div>
           <span className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-indigo-200 dark:border-indigo-800 shadow-sm transition-colors">
             {availableOrders.length} {t.newRequests}
