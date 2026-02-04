@@ -14,7 +14,7 @@ export const translations = {
     demoStore: "Demo Store",
     demoRider: "Demo Rider",
     checkEmail: "Please check your email for the confirmation link.",
-    appName: "Damanak",
+    appName: "Bid Runners",
     storePartner: "Store Partner",
     riderHero: "Rider Hero",
     available: "Available",
