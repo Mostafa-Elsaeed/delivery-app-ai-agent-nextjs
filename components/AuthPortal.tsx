@@ -81,10 +81,8 @@ const AuthPortal: React.FC<AuthPortalProps> = ({ onAuth, existingUsers, onSignup
 
       <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 p-8 relative z-10 animate-in fade-in zoom-in-95 duration-300 transition-colors">
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
+          <div className="inline-flex mb-4">
+            <img src="/logo.svg" alt="Bid Runners Logo" className="w-24 h-24 object-contain rounded-3xl shadow-2xl animate-pulse-slow" />
           </div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white">{t.appName}</h1>
           <p className="text-slate-500 dark:text-slate-400 font-medium">{t.secureDeliveryMarketplace}</p>

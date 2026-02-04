@@ -19,10 +19,8 @@ const Navbar: React.FC<NavbarProps> = ({ role, wallet, onLogout, isDarkMode, onT
     <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-[60] transition-colors">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="bg-indigo-600 p-2 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-indigo-900/20 rotate-12 group hover:rotate-0 transition-transform duration-300">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
+          <div className="transition-transform duration-300 hover:scale-110">
+            <img src="/logo.svg" alt="Bid Runners Logo" className="w-10 h-10 object-contain rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none" />
           </div>
           <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{t.appName}</span>
           <span className={`ml-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors ${
