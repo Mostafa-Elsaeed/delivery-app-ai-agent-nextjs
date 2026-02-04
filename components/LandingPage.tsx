@@ -43,7 +43,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onExplore, t, isDarkMode, onT
           <div className="inline-flex px-4 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
             {t.secureDeliveryMarketplace}
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tight">
             {t.heroTitle}
           </h1>
           <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-2xl">
