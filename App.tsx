@@ -8,10 +8,10 @@ import ChatModal from './components/ChatModal';
 import AuthPortal from './components/AuthPortal';
 import LandingPage from './components/LandingPage';
 // import { supabase } from './supabaseClient';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Orders as OrdersAPI, Bids as BidsAPI, Wallets as WalletsAPI, Messages as MessagesAPI, Reviews as ReviewsAPI } from './src/api';
 import { getSocket } from './src/realtime';
 import { translations } from './translations';
-// import { translations } from './lib/translations';
 
 // Helper to map DB order to UI Order type
 const mapOrder = (dbOrder: any): Order => ({
@@ -60,7 +60,6 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
   const [isLoading, setIsLoading] = useState(true);
   const [lang, setLang] = useState<'en' | 'ar'>('en');
-  const [showLanding, setShowLanding] = useState(true);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -350,81 +349,112 @@ const App: React.FC = () => {
     );
   }
 
-  if (!currentUser) {
-    if (showLanding) {
+  const Dashboard: React.FC = () => {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      if (!currentUser && !isLoading) {
+        // We stay on /dashboard but show AuthPortal
+      }
+    }, [currentUser, isLoading]);
+
+    if (!currentUser) {
       return (
-        <LandingPage 
-          onExplore={() => setShowLanding(false)} 
-          t={t} 
+        <AuthPortal 
+          onAuth={handleAuth} 
+          existingUsers={users} 
+          onSignup={handleSignup} 
           isDarkMode={isDarkMode} 
           onToggleTheme={toggleTheme} 
+          t={t} 
           onToggleLanguage={toggleLanguage} 
         />
       );
     }
-    return <AuthPortal onAuth={handleAuth} existingUsers={users} onSignup={handleSignup} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} />;
-  }
 
-  console.log('Current User Role:', currentUser?.role);
-  const activeChatOrder = orders.find(o => o.id === activeChatOrderId);
+    const activeChatOrder = orders.find(o => o.id === activeChatOrderId);
 
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 animate-in fade-in duration-500">
-      <Navbar
-        role={currentUser.role}
-        onLogout={handleLogout}
-        wallet={currentUser.wallet || { balance: 0, escrowHeld: 0, transactions: [] }}
-        isDarkMode={isDarkMode}
-        onToggleTheme={toggleTheme}
-        t={t}
-        onToggleLanguage={toggleLanguage}
-      />
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 animate-in fade-in duration-500">
+        <Navbar
+          role={currentUser.role}
+          onLogout={() => {
+            handleLogout();
+            navigate('/');
+          }}
+          wallet={currentUser.wallet || { balance: 0, escrowHeld: 0, transactions: [] }}
+          isDarkMode={isDarkMode}
+          onToggleTheme={toggleTheme}
+          t={t}
+          onToggleLanguage={toggleLanguage}
+        />
 
-      <main className="flex-grow container mx-auto px-4 py-8">
+        <main className="flex-grow container mx-auto px-4 py-8">
+          {(currentUser.role === UserRole.STORE || currentUser.role === 'store') ? (
+            <StorePortal
+              orders={orders.filter(o => o.storeId === currentUser.id)}
+              users={users}
+              onCreate={createOrder}
+              onSelectBidder={selectBidder}
+              onPayEscrow={payStoreEscrow}
+              onOpenChat={(id) => setActiveChatOrderId(id)}
+              onUpdateStatus={updateOrderStatus}
+              onReview={submitReview}
+              t={t}
+            />
+          ) : (
+            <DeliveryPortal
+              currentUser={currentUser}
+              orders={orders}
+              users={users}
+              onBid={placeBid}
+              onPayEscrow={payDeliveryEscrow}
+              onUpdateStatus={updateOrderStatus}
+              onOpenChat={(id) => setActiveChatOrderId(id)}
+              onReview={submitReview}
+              t={t}
+            />
+          )}
+        </main>
 
-        {(currentUser.role === UserRole.STORE || currentUser.role === 'store') ? (
-          <StorePortal
-            orders={orders.filter(o => o.storeId === currentUser.id)}
-            users={users}
-            onCreate={createOrder}
-            onSelectBidder={selectBidder}
-            onPayEscrow={payStoreEscrow}
-            onOpenChat={(id) => setActiveChatOrderId(id)}
-            onUpdateStatus={updateOrderStatus}
-            onReview={submitReview}
-            t={t}
-          />
-        ) : (
-          <DeliveryPortal
-            currentUser={currentUser}
-            orders={orders}
-            users={users}
-            onBid={placeBid}
-            onPayEscrow={payDeliveryEscrow}
-            onUpdateStatus={updateOrderStatus}
-            onOpenChat={(id) => setActiveChatOrderId(id)}
-            onReview={submitReview}
+        {activeChatOrder && (
+          <ChatModal
+            order={activeChatOrder}
+            currentUserId={currentUser.id}
+            onClose={() => setActiveChatOrderId(null)}
+            onSend={(text) => sendMessage(activeChatOrder.id, text)}
             t={t}
           />
         )}
-      </main>
 
-      {activeChatOrder && (
-        <ChatModal
-          order={activeChatOrder}
-          currentUserId={currentUser.id}
-          onClose={() => setActiveChatOrderId(null)}
-          onSend={(text) => sendMessage(activeChatOrder.id, text)}
-          t={t}
+        <footer className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 py-6 mt-12 transition-colors">
+          <div className="container mx-auto px-4 text-center text-gray-500 dark:text-slate-400 text-sm">
+            &copy; 2024 {t.appName} Delivery. {t.secureDeliveryMarketplace}.
+          </div>
+        </footer>
+      </div>
+    );
+  };
+
+
+  return (
+    <Router>
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            <LandingPage 
+              t={t} 
+              isDarkMode={isDarkMode} 
+              onToggleTheme={toggleTheme} 
+              onToggleLanguage={toggleLanguage} 
+            />
+          } 
         />
-      )}
-
-      <footer className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 py-6 mt-12 transition-colors">
-        <div className="container mx-auto px-4 text-center text-gray-500 dark:text-slate-400 text-sm">
-          &copy; 2024 {t.appName} Delivery. {t.secureDeliveryMarketplace}.
-        </div>
-      </footer>
-    </div>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 };
 

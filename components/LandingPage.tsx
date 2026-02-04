@@ -1,16 +1,16 @@
-
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface LandingPageProps {
-  onExplore: () => void;
   t: any;
   isDarkMode: boolean;
   onToggleTheme: () => void;
   onToggleLanguage: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onExplore, t, isDarkMode, onToggleTheme, onToggleLanguage }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ t, isDarkMode, onToggleTheme, onToggleLanguage }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsVisible(true);
@@ -31,7 +31,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onExplore, t, isDarkMode, onT
           <button onClick={onToggleTheme} className="p-3 bg-white/20 dark:bg-slate-800/20 text-slate-900 dark:text-white rounded-xl hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all ring-1 ring-white/30 dark:ring-slate-700/30">
              {isDarkMode ? '🌞' : '🌙'}
           </button>
-          <button onClick={onExplore} className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95 text-xs">
+          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95 text-xs">
             {t.enterApp}
           </button>
         </div>
@@ -50,10 +50,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onExplore, t, isDarkMode, onT
             {t.heroSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <button onClick={onExplore} className="px-10 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-lg hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-600/30 active:scale-95 hover:scale-[1.02]">
+            <button onClick={() => navigate('/dashboard')} className="px-10 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-lg hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-600/30 active:scale-95 hover:scale-[1.02]">
               {t.startShipping}
             </button>
-            <button onClick={onExplore} className="px-10 py-5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-[2rem] font-black text-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-xl active:scale-95">
+            <button onClick={() => navigate('/dashboard')} className="px-10 py-5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-[2rem] font-black text-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-xl active:scale-95">
               {t.joinAsRider}
             </button>
           </div>
@@ -116,7 +116,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onExplore, t, isDarkMode, onT
       {/* Footer */}
       <footer className="py-12 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 text-center space-y-6">
         <h2 className="text-3xl font-black text-slate-900 dark:text-white">{t.startShipping}</h2>
-        <button onClick={onExplore} className="px-12 py-5 bg-indigo-600 text-white rounded-full font-black text-xl hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-600/30">
+        <button onClick={() => navigate('/dashboard')} className="px-12 py-5 bg-indigo-600 text-white rounded-full font-black text-xl hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-600/30">
           {t.enterApp}
         </button>
         <p className="text-slate-400 dark:text-slate-600 text-sm mt-8">
