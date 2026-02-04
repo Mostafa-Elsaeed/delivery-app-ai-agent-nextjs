@@ -42,6 +42,137 @@ const mapOrder = (dbOrder: any): Order => ({
   riderReviewed: false
 });
 
+// Define types for Dashboard props to keep it clean
+interface DashboardProps {
+  currentUser: User | null;
+  isLoading: boolean;
+  users: User[];
+  orders: Order[];
+  activeChatOrderId: string | null;
+  setActiveChatOrderId: (id: string | null) => void;
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  toggleLanguage: () => void;
+  lang: 'en' | 'ar';
+  handleAuth: (user: User) => void;
+  handleSignup: (newUser: User) => void;
+  handleLogout: () => void;
+  createOrder: (productName: string, productPrice: number, deliveryFee: number, deliveryAddress: string, clientName: string, clientPhone: string) => Promise<void>;
+  placeBid: (orderId: string, amount: number) => Promise<void>;
+  selectBidder: (orderId: string, bidId: string) => Promise<void>;
+  payStoreEscrow: (orderId: string) => Promise<void>;
+  payDeliveryEscrow: (orderId: string) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  submitReview: (orderId: string, targetUserId: string, rating: number, comment: string) => Promise<void>;
+  sendMessage: (orderId: string, text: string) => Promise<void>;
+  t: any;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({
+  currentUser,
+  isLoading,
+  users,
+  orders,
+  activeChatOrderId,
+  setActiveChatOrderId,
+  isDarkMode,
+  toggleTheme,
+  toggleLanguage,
+  lang,
+  handleAuth,
+  handleSignup,
+  handleLogout,
+  createOrder,
+  placeBid,
+  selectBidder,
+  payStoreEscrow,
+  payDeliveryEscrow,
+  updateOrderStatus,
+  submitReview,
+  sendMessage,
+  t
+}) => {
+  const navigate = useNavigate();
+
+  if (!currentUser) {
+    if (isLoading) return null;
+    return (
+      <AuthPortal 
+        onAuth={handleAuth} 
+        existingUsers={users} 
+        onSignup={handleSignup} 
+        isDarkMode={isDarkMode} 
+        onToggleTheme={toggleTheme} 
+        t={t} 
+        onToggleLanguage={toggleLanguage} 
+      />
+    );
+  }
+
+  const activeChatOrder = orders.find(o => o.id === activeChatOrderId);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 animate-in fade-in duration-500">
+      <Navbar
+        role={currentUser.role}
+        onLogout={() => {
+          handleLogout();
+          navigate('/');
+        }}
+        wallet={currentUser.wallet || { balance: 0, escrowHeld: 0, transactions: [] }}
+        isDarkMode={isDarkMode}
+        onToggleTheme={toggleTheme}
+        t={t}
+        onToggleLanguage={toggleLanguage}
+      />
+
+      <main className="flex-grow container mx-auto px-4 py-8">
+        {(currentUser.role === UserRole.STORE || currentUser.role === 'store') ? (
+          <StorePortal
+            orders={orders.filter(o => o.storeId === currentUser.id)}
+            users={users}
+            onCreate={createOrder}
+            onSelectBidder={selectBidder}
+            onPayEscrow={payStoreEscrow}
+            onOpenChat={(id) => setActiveChatOrderId(id)}
+            onUpdateStatus={updateOrderStatus}
+            onReview={submitReview}
+            t={t}
+          />
+        ) : (
+          <DeliveryPortal
+            currentUser={currentUser}
+            orders={orders}
+            users={users}
+            onBid={placeBid}
+            onPayEscrow={payDeliveryEscrow}
+            onUpdateStatus={updateOrderStatus}
+            onOpenChat={(id) => setActiveChatOrderId(id)}
+            onReview={submitReview}
+            t={t}
+          />
+        )}
+      </main>
+
+      {activeChatOrder && (
+        <ChatModal
+          order={activeChatOrder}
+          currentUserId={currentUser.id}
+          onClose={() => setActiveChatOrderId(null)}
+          onSend={(text) => sendMessage(activeChatOrder.id, text)}
+          t={t}
+        />
+      )}
+
+      <footer className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 py-6 mt-12 transition-colors">
+        <div className="container mx-auto px-4 text-center text-gray-500 dark:text-slate-400 text-sm">
+          &copy; 2024 {t.appName} Delivery. {t.secureDeliveryMarketplace}.
+        </div>
+      </footer>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem('currentUser');
@@ -80,7 +211,6 @@ const App: React.FC = () => {
     document.documentElement.lang = newLang;
   };
 
-  // Define data fetching logic outside useEffect so it can be called manually
   const fetchAndSetData = useCallback(async () => {
     const [ordersData, reviewsData, messagesData, bidsData] = await Promise.all([
       OrdersAPI.list(),
@@ -89,7 +219,6 @@ const App: React.FC = () => {
       BidsAPI.list(),
     ]);
 
-    // Build Users map for ratings (calculating stars based on fetched reviews)
     const userMap = new Map<string, User>();
     const ensureUser = (id: string) => {
       if (!userMap.has(id)) {
@@ -112,8 +241,6 @@ const App: React.FC = () => {
     if (ordersData) {
       const mappedOrders = ordersData.map(dbOrder => {
         const baseOrder = mapOrder(dbOrder);
-        
-        // If order doesn't have bids or they are empty, try to find them in bidsData
         if (!baseOrder.bids || baseOrder.bids.length === 0) {
           const matchingBids = bidsData?.filter((b: any) => b.orderId === dbOrder.id) || [];
           baseOrder.bids = matchingBids.map((b: any) => ({
@@ -124,8 +251,6 @@ const App: React.FC = () => {
             timestamp: new Date(b.timestamp).getTime()
           }));
         }
-
-        // Attach real-time messages
         baseOrder.messages = messagesData?.filter((m: any) => m.orderId === dbOrder.id).map((m: any) => ({
           id: m.id, senderId: m.senderId, text: m.text, timestamp: new Date(m.timestamp).getTime()
         })) || [];
@@ -134,27 +259,21 @@ const App: React.FC = () => {
         return baseOrder;
       });
 
-      // Self-healing: Fix any orders that are stuck in AWAITING_ESCROW but have both deposits
       mappedOrders.forEach(async (o) => {
         if (o.status === OrderStatus.AWAITING_ESCROW && o.storeEscrowPaid && o.deliveryEscrowPaid) {
           await OrdersAPI.setStatus(o.id, OrderStatus.READY_FOR_PICKUP);
         }
       });
-
       setOrders(mappedOrders);
     }
   }, []);
 
-  // Initialize Supabase Auth Listener
   useEffect(() => {
-    // No Supabase auth; assume user logs in via AuthPortal and we set currentUser there
     setIsLoading(false);
   }, [fetchAndSetData]);
 
-  // Fetch Orders and Subscribe to changes
   useEffect(() => {
     fetchAndSetData();
-
     const id = setInterval(fetchAndSetData, 15000);
     const socket = getSocket(import.meta.env.VITE_API_BASE || 'http://localhost:3000');
     const refetch = () => fetchAndSetData();
@@ -168,36 +287,24 @@ const App: React.FC = () => {
     return () => { clearInterval(id); socket.close(); };
   }, [fetchAndSetData]);
 
-  // Sync Wallet from DB
   useEffect(() => {
     if (!currentUser?.id) return;
-
     const fetchWallet = async () => {
       let walletData = await WalletsAPI.get(currentUser.id);
-      const transactionsData: any[] = []; // Not implemented in backend yet
-
       if (walletData) {
         setCurrentUser(prev => prev ? ({
           ...prev,
           wallet: {
             balance: Number(walletData.balance),
             escrowHeld: Number(walletData.escrow),
-            transactions: transactionsData ? transactionsData.map((t: any) => ({
-              id: t.id,
-              amount: Number(t.amount),
-              type: t.type as 'IN' | 'OUT',
-              description: t.description,
-              timestamp: new Date(t.timestamp).getTime()
-            })) : []
+            transactions: []
           }
         }) : null);
       }
     };
-
     fetchWallet();
-
     const id = setInterval(fetchWallet, 15000);
-    return () => { clearInterval(id); };
+    return () => clearInterval(id);
   }, [currentUser?.id]);
 
   const createOrder = async (productName: string, productPrice: number, deliveryFee: number, deliveryAddress: string, clientName: string, clientPhone: string) => {
@@ -205,42 +312,23 @@ const App: React.FC = () => {
     await OrdersAPI.create({
       storeId: currentUser.id,
       storeName: currentUser.name,
-      productName,
-      productPrice,
-      suggestedDeliveryFee: deliveryFee,
-      destination: deliveryAddress,
-      clientName,
-      clientPhone,
-      status: OrderStatus.BIDDING,
+      productName, productPrice, suggestedDeliveryFee: deliveryFee, destination: deliveryAddress, clientName, clientPhone, status: OrderStatus.BIDDING,
     });
     fetchAndSetData();
   };
 
   const placeBid = async (orderId: string, amount: number) => {
     if (!currentUser) return;
-
-    // Check if bid exists in current state
     const existingBid = orders.find(o => o.id === orderId)?.bids.find(b => b.deliveryGuyId === currentUser.id);
-
     if (existingBid) {
-      await BidsAPI.update(existingBid.id, {
-        amount,
-      });
+      await BidsAPI.update(existingBid.id, { amount });
     } else {
-      await BidsAPI.create({
-        orderId,
-        userId: currentUser.id,
-        amount,
-      });
+      await BidsAPI.create({ orderId, userId: currentUser.id, amount });
     }
     fetchAndSetData();
   };
 
   const selectBidder = async (orderId: string, bidId: string) => {
-    const order = orders.find(o => o.id === orderId); // Note: this gets stale state, but ID lookup is safe
-    const bid = order?.bids.find(b => b.id === bidId);
-    if (!bid) return;
-
     await OrdersAPI.setStatus(orderId, OrderStatus.AWAITING_ESCROW);
     fetchAndSetData();
   };
@@ -251,20 +339,10 @@ const App: React.FC = () => {
     if (!order) return;
     const selectedBid = order.bids.find(b => b.id === order.selectedBidId);
     const fee = selectedBid ? selectedBid.amount : order.deliveryFeeOffer;
-
-    if (!currentUser.wallet || currentUser.wallet.balance < fee) return alert("Insufficient balance or wallet not loaded.");
-
-    // Update Wallet
-    await WalletsAPI.update(currentUser.id, {
-      balance: currentUser.wallet.balance - fee,
-      escrow: currentUser.wallet.escrowHeld + fee,
-    });
-
-    // TODO: transactions API not implemented in backend yet
-
+    if (!currentUser.wallet || currentUser.wallet.balance < fee) return alert("Insufficient balance");
+    await WalletsAPI.update(currentUser.id, { balance: currentUser.wallet.balance - fee, escrow: currentUser.wallet.escrowHeld + fee });
     const newStatus = order.deliveryEscrowPaid ? OrderStatus.READY_FOR_PICKUP : OrderStatus.AWAITING_ESCROW;
     await OrdersAPI.setStatus(orderId, newStatus);
-
     fetchAndSetData();
   };
 
@@ -272,53 +350,27 @@ const App: React.FC = () => {
     if (!currentUser) return;
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
-
-    if (!currentUser.wallet || currentUser.wallet.balance < order.productPrice) return alert("Insufficient balance or wallet not loaded.");
-
-    // Update Wallet
-    await WalletsAPI.update(currentUser.id, {
-      balance: currentUser.wallet.balance - order.productPrice,
-      escrow: currentUser.wallet.escrowHeld + order.productPrice,
-    });
-
+    if (!currentUser.wallet || currentUser.wallet.balance < order.productPrice) return alert("Insufficient balance");
+    await WalletsAPI.update(currentUser.id, { balance: currentUser.wallet.balance - order.productPrice, escrow: currentUser.wallet.escrowHeld + order.productPrice });
     const newStatus = order.storeEscrowPaid ? OrderStatus.READY_FOR_PICKUP : OrderStatus.AWAITING_ESCROW;
     await OrdersAPI.setStatus(orderId, newStatus);
-
     fetchAndSetData();
   };
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    // Guard: prevent double updates if local state already matches
-    const currentOrder = orders.find(o => o.id === orderId);
-    if (currentOrder?.status === status) return;
-
     await OrdersAPI.setStatus(orderId, status);
-    // TODO: implement payout logic server-side; for now just refresh
     fetchAndSetData();
   };
 
   const submitReview = async (orderId: string, targetUserId: string, rating: number, comment: string) => {
     if (!currentUser) return;
-
-    // Save to Supabase
-    await ReviewsAPI.create({
-      orderId,
-      reviewerId: currentUser.id,
-      reviewerName: currentUser.name,
-      targetUserId,
-      rating,
-      comment,
-    });
+    await ReviewsAPI.create({ orderId, reviewerId: currentUser.id, reviewerName: currentUser.name, targetUserId, rating, comment });
     fetchAndSetData();
   };
 
   const sendMessage = async (orderId: string, text: string) => {
     if (!currentUser) return;
-    await MessagesAPI.create({
-      orderId,
-      senderId: currentUser.id,
-      content: text,
-    });
+    await MessagesAPI.create({ orderId, senderId: currentUser.id, content: text });
     fetchAndSetData();
   };
 
@@ -326,14 +378,8 @@ const App: React.FC = () => {
     setCurrentUser(user);
     localStorage.setItem('currentUser', JSON.stringify(user));
   };
-
-  const handleSignup = (newUser: User) => {
-    setUsers(prev => [...prev, newUser]);
-  };
-
-  const handleLogout = async () => {
-    // No supabase logout yet; clear local state
-    // await supabase.auth.signOut();
+  const handleSignup = (newUser: User) => setUsers(prev => [...prev, newUser]);
+  const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     setCurrentUser(null);
@@ -349,109 +395,39 @@ const App: React.FC = () => {
     );
   }
 
-  const Dashboard: React.FC = () => {
-    const navigate = useNavigate();
-
-    useEffect(() => {
-      if (!currentUser && !isLoading) {
-        // We stay on /dashboard but show AuthPortal
-      }
-    }, [currentUser, isLoading]);
-
-    if (!currentUser) {
-      return (
-        <AuthPortal 
-          onAuth={handleAuth} 
-          existingUsers={users} 
-          onSignup={handleSignup} 
-          isDarkMode={isDarkMode} 
-          onToggleTheme={toggleTheme} 
-          t={t} 
-          onToggleLanguage={toggleLanguage} 
-        />
-      );
-    }
-
-    const activeChatOrder = orders.find(o => o.id === activeChatOrderId);
-
-    return (
-      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 animate-in fade-in duration-500">
-        <Navbar
-          role={currentUser.role}
-          onLogout={() => {
-            handleLogout();
-            navigate('/');
-          }}
-          wallet={currentUser.wallet || { balance: 0, escrowHeld: 0, transactions: [] }}
-          isDarkMode={isDarkMode}
-          onToggleTheme={toggleTheme}
-          t={t}
-          onToggleLanguage={toggleLanguage}
-        />
-
-        <main className="flex-grow container mx-auto px-4 py-8">
-          {(currentUser.role === UserRole.STORE || currentUser.role === 'store') ? (
-            <StorePortal
-              orders={orders.filter(o => o.storeId === currentUser.id)}
-              users={users}
-              onCreate={createOrder}
-              onSelectBidder={selectBidder}
-              onPayEscrow={payStoreEscrow}
-              onOpenChat={(id) => setActiveChatOrderId(id)}
-              onUpdateStatus={updateOrderStatus}
-              onReview={submitReview}
-              t={t}
-            />
-          ) : (
-            <DeliveryPortal
-              currentUser={currentUser}
-              orders={orders}
-              users={users}
-              onBid={placeBid}
-              onPayEscrow={payDeliveryEscrow}
-              onUpdateStatus={updateOrderStatus}
-              onOpenChat={(id) => setActiveChatOrderId(id)}
-              onReview={submitReview}
-              t={t}
-            />
-          )}
-        </main>
-
-        {activeChatOrder && (
-          <ChatModal
-            order={activeChatOrder}
-            currentUserId={currentUser.id}
-            onClose={() => setActiveChatOrderId(null)}
-            onSend={(text) => sendMessage(activeChatOrder.id, text)}
-            t={t}
-          />
-        )}
-
-        <footer className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 py-6 mt-12 transition-colors">
-          <div className="container mx-auto px-4 text-center text-gray-500 dark:text-slate-400 text-sm">
-            &copy; 2024 {t.appName} Delivery. {t.secureDeliveryMarketplace}.
-          </div>
-        </footer>
-      </div>
-    );
-  };
-
-
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<LandingPage t={t} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} onToggleLanguage={toggleLanguage} />} />
         <Route 
-          path="/" 
+          path="/dashboard" 
           element={
-            <LandingPage 
-              t={t} 
-              isDarkMode={isDarkMode} 
-              onToggleTheme={toggleTheme} 
-              onToggleLanguage={toggleLanguage} 
+            <Dashboard 
+              currentUser={currentUser}
+              isLoading={isLoading}
+              users={users}
+              orders={orders}
+              activeChatOrderId={activeChatOrderId}
+              setActiveChatOrderId={setActiveChatOrderId}
+              isDarkMode={isDarkMode}
+              toggleTheme={toggleTheme}
+              toggleLanguage={toggleLanguage}
+              lang={lang}
+              handleAuth={handleAuth}
+              handleSignup={handleSignup}
+              handleLogout={handleLogout}
+              createOrder={createOrder}
+              placeBid={placeBid}
+              selectBidder={selectBidder}
+              payStoreEscrow={payStoreEscrow}
+              payDeliveryEscrow={payDeliveryEscrow}
+              updateOrderStatus={updateOrderStatus}
+              submitReview={submitReview}
+              sendMessage={sendMessage}
+              t={t}
             />
           } 
         />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
