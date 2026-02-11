@@ -59,6 +59,10 @@ export const RootProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('lang', lang);
   }, [lang]);
 
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
+
   const toggleTheme = () => setIsDarkMode(prev => !prev);
   const toggleLanguage = () => setLang(prev => (prev === 'en' ? 'ar' : 'en'));
 
