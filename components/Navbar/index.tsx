@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
-import { UserRole, Wallet } from '../types';
+import { useNavigate } from 'react-router-dom';
+import './Navbar.css';
+import { UserRole, Wallet } from '../../types';
 
 interface NavbarProps {
   role: UserRole;

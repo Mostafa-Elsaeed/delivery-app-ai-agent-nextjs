@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import './ReviewSection.css';
 
 interface ReviewSectionProps {
   onReview: (rating: number, comment: string) => void;

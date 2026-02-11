@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { UserRole, User } from '../types';
-import { login, register } from '../src/api';
+import './AuthPortal.css';
+import { UserRole, User } from '../../types';
+import { login, register } from '../../src/api';
 
 interface AuthPortalProps {
   onAuth: (user: User) => void;

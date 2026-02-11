@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Order } from '../types';
+import './ChatModal.css';
+import { Order } from '../../types';
 
 interface ChatModalProps {
   order: Order;

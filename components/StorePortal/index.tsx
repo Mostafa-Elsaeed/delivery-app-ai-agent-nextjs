@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Order, OrderStatus, User } from '../types';
-import ReviewSection from './ReviewSection';
+import './StorePortal.css';
+import { Order, OrderStatus, User } from '../../types';
+import ReviewSection from '../ReviewSection';
 
 interface StorePortalProps {
   orders: Order[];
